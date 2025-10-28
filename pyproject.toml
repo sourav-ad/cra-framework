@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "src"  # better: rename your package folder and put that name here
+version = "0.0.1"
+
+[tool.setuptools]
+packages = ["src"]
