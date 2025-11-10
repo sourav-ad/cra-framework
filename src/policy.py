@@ -6,17 +6,30 @@ seed = 123
 #Baseline multinomial logistic policy \pi_0(A | S_t)
 # \frac{\exp(alpha + beta^T S_t)}{\sum {\exp(alpha + beta^T S_t)}}
 
-def generate_policy_parameters(p, k, seed = seed):
-    np.random.seed(seed)
-    alphas = np.random.uniform(-0.5, 0.5, size = k)
-    betas = np.random.uniform(-1, 1, size = (k, p))
+def generate_policy_parameters(p, k, seed = None):
+    rng = np.random.default_rng(seed)
+    alphas = rng.uniform(-0.5, 0.5, size = k)
+    betas = rng.uniform(-1, 1, size = (k, p))
     return alphas, betas
 
+# Sample discrete actions based on a multinomial logit policy:
+# P(A_t = a | Z_t) ∝ exp(alpha_a + Z_t beta_a^T)
 
-def sample_action(S_t, alphas, betas):
+# Parameters
+# Z_t : (n, p) normalized state matrix
+# alphas : (k,) action intercepts
+# betas : (k, p) action coefficients
+# Output:
+# actions : (n,) chosen action indices [0..k-1]
+# probs   : (n, k) action probability distribution
+# A_onehot: (n, k) one-hot encoded actions
+
+def sample_action(Z_t, alphas, betas, seed = None):
     #multinomial logit expression
-    logits = alphas + S_t @ betas.T
+    rng = np.random.default_rng(seed)
+    logits = alphas + Z_t @ betas.T
     exp_logits = np.exp(logits - np.max(logits, axis=1, keepdims=True))
     probs = exp_logits / exp_logits.sum(axis=1, keepdims=True)
-    actions = np.array([np.random.choice(len(probs[i]), p=probs[i]) for i in range(len(probs))])
-    return actions, probs
+    actions = np.array([rng.choice(len(probs[i]), p=probs[i]) for i in range(len(probs))])
+    A_onehot = np.eye(len(alphas))[actions]
+    return actions, probs, A_onehot

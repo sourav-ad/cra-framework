@@ -19,9 +19,13 @@ def fit_outcome(df, features, action_col="A", reward_col="R", k=3):
     m_hat = np.zeros((len(df), k))
     for a in range(k):
         mask = (A == a)
-        reg = LinearRegression()
-        reg.fit(X[mask], y[mask])
-        m_hat[:, a] = reg.predict(X)
+        if mask.sum() > 1:  # ensure at least 2 samples
+            reg = LinearRegression()
+            reg.fit(X[mask], y[mask])
+            m_hat[:, a] = reg.predict(X)
+        else:
+            # fallback: use mean reward if insufficient samples for action
+            m_hat[:, a] = y.mean()
     return m_hat
 
 #AIPW estimator
@@ -30,17 +34,19 @@ def cra_estimator(df, features, k=3):
     m_hat = fit_outcome(df, features, k=k)
     A = df["A"].values
     R = df["R"].values
+
     psi = np.zeros((len(df), k))
     for a in range(k):
-        psi[:, a] = m_hat[:, a] + ( (A == a) / e_hat[:, a] ) * (R - m_hat[:, a])
+        # standard AIPW structure
+        psi[:, a] = m_hat[:, a] + ((A == a) / e_hat[:, a]) * (R - m_hat[:, a])
     theta_hat = psi.mean(axis=0)
     return theta_hat, psi
 
 #Time indexed, AIPW estimator independently at each time step
-def cra_timewise(df, features, T=3, k=3):
-    results = {}
-    for t in range(T):
-        df_t = df[df["t"] == t]
-        theta_t, _ = cra_estimator(df_t, features, k=k)
-        results[t] = theta_t
-    return results
+# def cra_timewise(df, features, T=3, k=3):
+#     results = {}
+#     for t in range(T):
+#         df_t = df[df["t"] == t]
+#         theta_t, _ = cra_estimator(df_t, features, k=k)
+#         results[t] = theta_t
+#     return results
