@@ -12,7 +12,7 @@ def generate_policy_parameters(p, k, seed = None):
     betas = rng.uniform(-1, 1, size = (k, p))
     return alphas, betas
 
-# Sample discrete actions based on a multinomial logit policy:
+#discrete actions based on a multinomial logit policy:
 # P(A_t = a | Z_t) ∝ exp(alpha_a + Z_t beta_a^T)
 
 # Parameters
@@ -24,6 +24,7 @@ def generate_policy_parameters(p, k, seed = None):
 # probs   : (n, k) action probability distribution
 # A_onehot: (n, k) one-hot encoded actions
 
+#create the hypothetical policy \pi_0
 def sample_action(Z_t, alphas, betas, seed = None):
     #multinomial logit expression
     rng = np.random.default_rng(seed)
@@ -31,5 +32,5 @@ def sample_action(Z_t, alphas, betas, seed = None):
     exp_logits = np.exp(logits - np.max(logits, axis=1, keepdims=True))
     probs = exp_logits / exp_logits.sum(axis=1, keepdims=True)
     actions = np.array([rng.choice(len(probs[i]), p=probs[i]) for i in range(len(probs))])
-    A_onehot = np.eye(len(alphas))[actions]
+    A_onehot = np.eye(len(alphas))[actions] #one hot encoding the action matrix
     return actions, probs, A_onehot
