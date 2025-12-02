@@ -1,28 +1,29 @@
 import numpy as np
 import pandas as pd
-from src.states import initialize_states, transition_function, standardize_states
+from src.states import *
 from src.policy import generate_policy_parameters, sample_action
 from src.rewards import reward_function
 
 seed = 123
 
-def generate_data(n=500, T=3, p=4, k=3, seed=None):
+def generate_data(n, T, p, k, stats, alphas, betas, phi, psi, w, seed=None):
     rng = np.random.default_rng(seed)
+    #stats = get_stats_subset(p)
 
-    # policy parameters
-    alphas, betas = generate_policy_parameters(p, k, seed)
+    # # policy parameters
+    # alphas, betas = generate_policy_parameters(p, k, seed)
     
-    # transition matrices
-    phi = np.eye(p) * rng.uniform(0.9, 1.1, size=p) + rng.uniform(-0.05, 0.05, size=(p, p))
-    psi = rng.uniform(-0.1, 0.1, size=(p, k))
+    # # transition matrices
+    # phi = np.eye(p) * rng.uniform(0.9, 1.1, size=p) + rng.uniform(-0.05, 0.05, size=(p, p))
+    # psi = rng.uniform(-0.1, 0.1, size=(p, k))
     
-    # Vital importance weights for reward
-    w = rng.uniform(0.1, 1.0, size=p)
-    w = w / w.sum()  # normalize to sum=1
+    # # Vital importance weights for reward
+    # w = rng.uniform(0.1, 1.0, size=p)
+    # w = w / w.sum()  # normalize to sum=1
 
     # initialize and standardize states
-    S_0 = initialize_states(n, seed)
-    Z_t = standardize_states(S_0)
+    S_0 = initialize_states(n, stats, seed)
+    Z_t = standardize_states(S_0, stats)
 
     records = []
 

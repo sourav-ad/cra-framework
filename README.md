@@ -5,3 +5,4 @@ We aim to introduce the **Causal Resource Added (CRA)** metric for policy interv
 To estimate CRA, we present a *doubly robust*  augmented inverse probability weighted (AIPW) estimator. Theoretically, for our estimator, we prove sequential double robustness and invariance to additive time-dependent shifts.
 
 We present a simulation study to demonstrate the same. The folder `src` contains the source codes and `notebooks` contains the implementation and simulation. 
+

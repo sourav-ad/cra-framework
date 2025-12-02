@@ -29,18 +29,34 @@ def fit_outcome(df, features, action_col="A", reward_col="R", k=3):
     return m_hat
 
 #AIPW estimator
-def cra_estimator(df, features, k=3):
-    _, e_hat = fit_propensity(df, features)
-    m_hat = fit_outcome(df, features, k=k)
-    A = df["A"].values
-    R = df["R"].values
+def cra_estimator(df, features_outcome, features_propensity, k=3):
 
+    # Propensity
+    X_e = df[features_propensity].values
+    y   = df["A"].values
+    model_e = LogisticRegression(multi_class="multinomial", max_iter=1000)
+    model_e.fit(X_e, y)
+    e_hat = model_e.predict_proba(X_e)
+
+    # Outcome
+    X_m = df[features_outcome].values
+    R   = df["R"].values
+    A   = df["A"].values
+
+    m_hat = np.zeros((len(df), k))
+    for a in range(k):
+        reg = LinearRegression()
+        reg.fit(X_m[A == a], R[A == a])
+        m_hat[:, a] = reg.predict(X_m)
+
+    # AIPW
     psi = np.zeros((len(df), k))
     for a in range(k):
-        # standard AIPW structure
         psi[:, a] = m_hat[:, a] + ((A == a) / e_hat[:, a]) * (R - m_hat[:, a])
+
     theta_hat = psi.mean(axis=0)
     return theta_hat, psi
+
 
 #Time indexed, AIPW estimator independently at each time step
 # def cra_timewise(df, features, T=3, k=3):
